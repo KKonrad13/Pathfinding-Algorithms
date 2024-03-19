@@ -51,6 +51,9 @@ class Edge:
     def calculate_astar_heuristic_euklides_cost(self, last_stop_lat: float, last_stop_lon: float):
         return sqrt(pow((last_stop_lat - self.end_stop.lat), 2) + pow((last_stop_lon - self.end_stop.lon), 2))
 
+    def is_previous_edge(self, other_edge):#TODO czemu nie moge :Edge
+        return self.departure == other_edge.arrival and self.line == other_edge.line
+
 class Graph:
     def __init__(self, file_path) -> None:
         self.read_graph_from_csv(file_path)

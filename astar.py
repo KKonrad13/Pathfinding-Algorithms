@@ -25,35 +25,48 @@ class Astar:
             for edge in node_edges:
                 #aktualizuj koszt -> aktualny koszt + czas potrzebny na przejazd + ile do odjazdu
                 #i dodaj do kolejki 
-                current_time_cost = current_node.cost + edge.calculate_edge_cost(current_time)
-                current_heuristic_cost = 500 * edge.calculate_astar_heuristic_euklides_cost(self.last_stop.lat, self.last_stop.lon)
-                # print(f'time: {current_time_cost}, distance: {current_heuristic_cost}')
-                whole_cost = current_time_cost + current_heuristic_cost #TODO CZY NIE ROBI Z TEGO INTA?
-                if whole_cost < edge.end_stop.cost + edge.end_stop.heuristic_cost:
-                    edge.end_stop.cost = current_time_cost
-                    edge.end_stop.heuristic_cost = current_heuristic_cost
-                    edge.end_stop.edge = edge
-            lowest_cost: int = float('inf')
-            lowest_cost_stop: str = ''
-            for stop in self.nodes_left.keys():
-                stop_whole_cost = self.nodes_left[stop].cost + self.nodes_left[stop].heuristic_cost
-                # print(f'stop whole cost: {stop_whole_cost}')
-                if stop_whole_cost < lowest_cost:
-                    lowest_cost = stop_whole_cost
-                    # print(f'lowest_cost: {lowest_cost}')
-                    lowest_cost_stop = stop
+                self.calculate_costs_TIME_CONDITION(current_node, edge, current_time)
+            lowest_cost_stop: str = self.get_lowest_cost_stop_name()
+            
             if self.nodes_left.keys() != []:
                 current_node = self.nodes_left.pop(lowest_cost_stop)
             else:
                 current_node = None
 
         if self.print_result:
-            print('Koniec A*')
-            print(f'Całkowity koszt: {current_node.cost}')
-            result = []
-            while current_node.name != self.fisrt_stop_name:
-                result.insert(0,current_node.edge)
-                current_node = current_node.edge.start_stop
-            
-            for edge in result:
-                print(edge)
+            self.print_result(current_node)
+    
+    def calculate_costs_TIME_CONDITION(self, current_node: Node, edge: Edge, current_time: dt):
+        current_time_cost = current_node.cost + edge.calculate_edge_cost(current_time)
+        current_heuristic_cost = 500 * edge.calculate_astar_heuristic_euklides_cost(self.last_stop.lat, self.last_stop.lon)
+        whole_cost = current_time_cost + current_heuristic_cost
+        if whole_cost < edge.end_stop.cost + edge.end_stop.heuristic_cost:
+            edge.end_stop.cost = current_time_cost
+            edge.end_stop.heuristic_cost = current_heuristic_cost
+            edge.end_stop.edge = edge
+
+    def calculate_costs_BUS_CHANGE_CONDITION(self, current_node: Node, edge: Edge):
+        current_bus_change_cost = current_node.cost + 0 if edge.is_previous_edge(current_node.edge) else 1
+        current_heuristic_cost = 500 * edge.calculate_astar_heuristic_euklides_cost(self.last_stop.lat, self.last_stop.lon)
+
+
+    def get_lowest_cost_stop_name(self):
+        lowest_cost_stop: str = ''
+        lowest_cost: int = float('inf')
+        for stop in self.nodes_left.keys():
+            stop_whole_cost = self.nodes_left[stop].cost + self.nodes_left[stop].heuristic_cost
+            if stop_whole_cost < lowest_cost:
+                lowest_cost = stop_whole_cost
+                lowest_cost_stop = stop
+        return lowest_cost_stop
+
+    def print_result(self, current_node):
+        print('Koniec A*')
+        print(f'Całkowity koszt: {current_node.cost}')
+        result = []
+        while current_node.name != self.fisrt_stop_name:
+            result.insert(0,current_node.edge)
+            current_node = current_node.edge.start_stop
+        
+        for edge in result:
+            print(edge)
