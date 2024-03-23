@@ -2,25 +2,32 @@ from typing import Dict, List
 from datastructures import Graph, Node, Edge
 from datetime import datetime as dt, timedelta as td
 class Astar:
-    def __init__(self, graph: Graph, fisrt_stop: str, last_stop: str, start_time: str, print_result: bool = True) -> None:
-        if fisrt_stop not in graph.nodes.keys() or last_stop not in graph.nodes.keys():
+    def __init__(self, graph: Graph, first_stop: str, last_stop: str, start_time: str, print_result: bool = True) -> None:
+        if first_stop not in graph.nodes.keys() or last_stop not in graph.nodes.keys():
             return 
-        graph.nodes[fisrt_stop].cost = 0
+        graph.nodes[first_stop].cost = 0
         self.original_graph: Graph = graph
         self.nodes_left: Dict[str, Node] = graph.nodes.copy()
         self.nodes_processed: Dict[str, Node] = {}
-        self.fisrt_stop_name: str = fisrt_stop
+        self.first_stop_name: str = first_stop
         self.last_stop_name: str = last_stop
         self.last_stop: Node = self.nodes_left[last_stop]
-        self.start_time: dt = dt.strptime(start_time, '%H:%M')
+        start_h, start_m = map(int, start_time.split(':'))
+        start_dt = dt.strptime(f'{(start_h%24):02d}:{start_m:02d}', '%H:%M')
+        if start_h >= 24:
+            start_dt += td(hours=24)
+        self.start_time: dt = start_dt
         self.is_print_result: bool = print_result
     
     def start_algorithm(self):
         current_node: Node
-        current_node = self.nodes_left.pop(self.fisrt_stop_name)
+        current_node = self.nodes_left.pop(self.first_stop_name)
         while current_node is not None and current_node.name != self.last_stop_name:
             self.nodes_processed[current_node.name] = current_node
-            current_time = self.start_time + td(minutes=current_node.cost)
+            if current_node.edge:
+                current_time = current_node.edge.arrival
+            else:
+                current_time = self.start_time
             node_edges: List[Edge] = self.original_graph.get_node_edges_after_time(current_node.name, current_time)
             for edge in node_edges:
                 #aktualizuj koszt -> aktualny koszt + czas potrzebny na przejazd + ile do odjazdu
@@ -29,12 +36,16 @@ class Astar:
                 self.calculate_costs_BUS_CHANGE_CONDITION(current_node, edge)
             lowest_cost_stop: str = self.get_lowest_cost_stop_name()
             
-            if self.nodes_left.keys() != []:
+            if lowest_cost_stop != '' and self.nodes_left.keys() != []:
                 current_node = self.nodes_left.pop(lowest_cost_stop)
             else:
                 current_node = None
-
-        if self.is_print_result:
+        if not current_node:
+            time_diff: td = self.start_time - dt(1900, 1, 1, 0, 0, 0)
+            hours = time_diff.total_seconds() // 3600
+            minutes = (time_diff.total_seconds() % 3600) // 60
+            print(f'Nie znaleziono ścieżki dla połacznia {self.first_stop_name} -> {self.last_stop_name} rozpoczynającego się o godzinie {int(hours):02d}:{int(minutes):02d}')
+        elif self.is_print_result:
             self.print_result(current_node)
     
     def calculate_costs_TIME_CONDITION(self, current_node: Node, edge: Edge, current_time: dt):
@@ -70,7 +81,7 @@ class Astar:
         print('Koniec A*')
         print(f'Całkowity koszt: {current_node.cost}')
         result = []
-        while current_node.name != self.fisrt_stop_name:
+        while current_node.name != self.first_stop_name:
             result.insert(0,current_node.edge)
             current_node = current_node.edge.start_stop
         

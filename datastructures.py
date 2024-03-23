@@ -38,7 +38,14 @@ class Edge:
         return self.line == __value.line and same_stops 
     
     def __str__(self) -> str:
-        return f'Linia: {self.line}, {self.start_stop.name} -> {self.end_stop.name}, {self.departure.strftime("%H:%M")} -> {self.arrival.strftime("%H:%M")}'
+        min_dt: dt = dt(1900, 1, 1, 0, 0, 0)
+        dep_time_diff: td = self.departure - min_dt
+        arr_time_diff: td = self.arrival - min_dt
+        dep_h = dep_time_diff.total_seconds() // 3600
+        dep_m = (dep_time_diff.total_seconds() % 3600) // 60  
+        arr_h = arr_time_diff.total_seconds() // 3600
+        arr_m = (arr_time_diff.total_seconds() % 3600) // 60  
+        return f'Linia: {self.line}, {self.start_stop.name} -> {self.end_stop.name}, {int(dep_h):02d}:{int(dep_m):02d} -> {int(arr_h):02d}:{int(arr_m):02d}'
 
     def calculate_edge_cost(self, current_time: dt):
         time_diff = self.departure - current_time
@@ -106,5 +113,6 @@ class Graph:
                 self.edges.append(edge)
     
     def get_node_edges_after_time(self, stop_name: str, time: dt):
-        return filter(lambda edge: edge.departure >= time , self.nodes_with_edges[stop_name]) 
+        # return filter(lambda edge: edge.departure >= time , self.nodes_with_edges[stop_name]) 
+        return sorted(filter(lambda edge: edge.departure >= time, self.nodes_with_edges[stop_name]), key=lambda edge: edge.departure) 
     

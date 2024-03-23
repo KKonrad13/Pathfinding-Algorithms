@@ -10,8 +10,9 @@ class Test:
         self.graph = Graph(file_path)
         self.simple_path = (self.graph, 'Nowowiejska', 'PL. GRUNWALDZKI', '12:22')
         self.medium_path = (self.graph, 'Bezpieczna', 'Czajkowskiego', '12:22')
-        self.long_path = (self.graph, 'Katedra', 'Kadłubka', '12:22')
-        # self.long_path = (self.graph, 'Reja', 'Kadłubka', '23:59')#TODO ubsłużyć przypadek >24
+        # self.long_path = (self.graph, 'Katedra', 'Kadłubka', '12:22')
+        # self.long_path = (self.graph, 'Reja', 'Kadłubka', '25:59')#TODO ubsłużyć przypadek >24
+        self.long_path = (self.graph, 'PETRUSEWICZA', 'Młodych Techników', '25:59')#TODO ubsłużyć przypadek >24
         print(f'Plik wczytany: {"{:.2f}".format(time.time() - current_time)}s')
 
     #MEASURE FUNCTION
