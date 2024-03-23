@@ -2,7 +2,7 @@ from typing import Dict, List
 from datastructures import Graph, Node, Edge
 from datetime import datetime as dt, timedelta as td
 class Astar:
-    def __init__(self, graph: Graph, fisrt_stop: str, last_stop: str, start_time: str, print_result: bool = True) -> None:#todo jeszcze parametr czy czas czy przesiadki
+    def __init__(self, graph: Graph, fisrt_stop: str, last_stop: str, start_time: str, print_result: bool = True) -> None:
         if fisrt_stop not in graph.nodes.keys() or last_stop not in graph.nodes.keys():
             return 
         graph.nodes[fisrt_stop].cost = 0
@@ -13,7 +13,7 @@ class Astar:
         self.last_stop_name: str = last_stop
         self.last_stop: Node = self.nodes_left[last_stop]
         self.start_time: dt = dt.strptime(start_time, '%H:%M')
-        self.print_result: bool = print_result
+        self.is_print_result: bool = print_result
     
     def start_algorithm(self):
         current_node: Node
@@ -25,7 +25,8 @@ class Astar:
             for edge in node_edges:
                 #aktualizuj koszt -> aktualny koszt + czas potrzebny na przejazd + ile do odjazdu
                 #i dodaj do kolejki 
-                self.calculate_costs_TIME_CONDITION(current_node, edge, current_time)
+                # self.calculate_costs_TIME_CONDITION(current_node, edge, current_time)
+                self.calculate_costs_BUS_CHANGE_CONDITION(current_node, edge)
             lowest_cost_stop: str = self.get_lowest_cost_stop_name()
             
             if self.nodes_left.keys() != []:
@@ -33,7 +34,7 @@ class Astar:
             else:
                 current_node = None
 
-        if self.print_result:
+        if self.is_print_result:
             self.print_result(current_node)
     
     def calculate_costs_TIME_CONDITION(self, current_node: Node, edge: Edge, current_time: dt):
@@ -46,9 +47,14 @@ class Astar:
             edge.end_stop.edge = edge
 
     def calculate_costs_BUS_CHANGE_CONDITION(self, current_node: Node, edge: Edge):
-        current_bus_change_cost = current_node.cost + 0 if edge.is_previous_edge(current_node.edge) else 1
-        current_heuristic_cost = 500 * edge.calculate_astar_heuristic_euklides_cost(self.last_stop.lat, self.last_stop.lon)
+        current_bus_change_cost = current_node.cost + (0 if edge.is_previous_edge_or_none(current_node.edge) else 1)
 
+        current_heuristic_cost = 5 * edge.calculate_astar_heuristic_euklides_cost(self.last_stop.lat, self.last_stop.lon)
+        whole_cost = current_bus_change_cost + current_heuristic_cost
+        if whole_cost < edge.end_stop.cost + edge.end_stop.heuristic_cost:
+            edge.end_stop.cost = current_bus_change_cost
+            edge.end_stop.heuristic_cost = current_heuristic_cost
+            edge.end_stop.edge = edge
 
     def get_lowest_cost_stop_name(self):
         lowest_cost_stop: str = ''
@@ -70,3 +76,4 @@ class Astar:
         
         for edge in result:
             print(edge)
+            # print(f'{edge.start_stop.cost}, {edge.start_stop.heuristic_cost}')

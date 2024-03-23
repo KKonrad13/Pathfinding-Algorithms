@@ -6,7 +6,7 @@ class Node:
     def __init__(self, name: str, lat: str, lon: str) -> None:
         self.name = name
         self.lat: float = float(lat)
-        self.lon: float = float(lon)#todo czy to dobrze?
+        self.lon: float = float(lon)
         self.cost: int = float('inf')
         self.heuristic_cost: float = 0
         self.edge: Edge = None #przy inicjalizacji nie mamy ścieżki
@@ -51,8 +51,8 @@ class Edge:
     def calculate_astar_heuristic_euklides_cost(self, last_stop_lat: float, last_stop_lon: float):
         return sqrt(pow((last_stop_lat - self.end_stop.lat), 2) + pow((last_stop_lon - self.end_stop.lon), 2))
 
-    def is_previous_edge(self, other_edge):#TODO czemu nie moge :Edge
-        return self.departure == other_edge.arrival and self.line == other_edge.line
+    def is_previous_edge_or_none(self, other_edge):#TODO czemu nie moge :Edge
+        return other_edge is None or (self.departure == other_edge.arrival and self.line == other_edge.line)
 
 class Graph:
     def __init__(self, file_path) -> None:

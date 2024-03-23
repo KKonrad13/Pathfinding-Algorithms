@@ -11,6 +11,7 @@ class Test:
         self.simple_path = (self.graph, 'Nowowiejska', 'PL. GRUNWALDZKI', '12:22')
         self.medium_path = (self.graph, 'Bezpieczna', 'Czajkowskiego', '12:22')
         self.long_path = (self.graph, 'Katedra', 'Kadłubka', '12:22')
+        # self.long_path = (self.graph, 'Reja', 'Kadłubka', '23:59')#TODO ubsłużyć przypadek >24
         print(f'Plik wczytany: {"{:.2f}".format(time.time() - current_time)}s')
 
     #MEASURE FUNCTION
@@ -69,4 +70,5 @@ class Test:
 if __name__=='__main__':#todo obsluzyc przypadek gdy przystanek nie istnieje/sciezka nie istnieje
     test = Test(FILE_PATH) 
     # test.measure_simple_dijkstra()
-    test.measure_simple_astar()
+    # test.measure_simple_astar()
+    test.run_long_astar(print_result=True)
