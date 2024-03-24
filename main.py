@@ -39,30 +39,32 @@ class Test:
 
     #RUN ASTAR
     def run_dijkstra_random_tests(self):
-        return#TODO change Dijkstra
+        print('DIJKSTRA TESTS')
         astar = Dijkstra(self.graph)
         for test_case in self.test_cases:
             current_time = time.time()
-            n = 1
+            n = 10
             result = None
             for _ in range(n):
                 result = astar.start_algorithm(*test_case, False)
             print(f'result {"   " if result else "not"} successful - {n} times - {test_case}: {"{:.2f}".format(time.time() - current_time)}s')
-            break
+        print('===================================================================================')
 
     #RUN ASTAR
     def run_astar_random_tests(self):
+        print('A* TESTS')
         astar = Astar(self.graph)
         for test_case in self.test_cases:
             current_time = time.time()
-            n = 1
+            n = 10
             result = None
             for _ in range(n):
                 result = astar.start_algorithm(*test_case, False)#- cost: {result.cost if result else "  "} 
             print(f'result {"   " if result else "not"} successful - {n} times - {test_case}: {"{:.2f}".format(time.time() - current_time)}s')
+        print('===================================================================================')
 
 
 if __name__=='__main__':
     test = Test(FILE_PATH) 
     test.run_astar_random_tests()
-    # test.run_dijkstra_random_tests()
+    test.run_dijkstra_random_tests()
