@@ -2,74 +2,67 @@ from datastructures import *
 from dijkstra import Dijkstra
 from astar import Astar
 import time
+import random
+
 FILE_PATH = './ignore/connection_graph.csv'
+
+random.seed(16)#least not successful results
 
 class Test:
     def __init__(self, file_path) -> None:
         current_time = time.time()
         self.graph = Graph(file_path)
-        self.simple_path = (self.graph, 'Nowowiejska', 'PL. GRUNWALDZKI', '12:22')
-        self.medium_path = (self.graph, 'Bezpieczna', 'Czajkowskiego', '12:22')
-        # self.long_path = (self.graph, 'Katedra', 'Kadłubka', '12:22')
-        # self.long_path = (self.graph, 'Reja', 'Kadłubka', '25:59')#TODO ubsłużyć przypadek >24
-        self.long_path = (self.graph, 'PETRUSEWICZA', 'Młodych Techników', '25:59')#TODO ubsłużyć przypadek >24
         print(f'Plik wczytany: {"{:.2f}".format(time.time() - current_time)}s')
+        self.nodes_len: int = len(self.graph.nodes.keys())
+        self.stops: List[str] = [*self.graph.nodes.keys()]
+        self.test_cases = []
+        sample_size = 6
+        for _ in range(sample_size):#hours <10:00
+            self.test_cases.append((self.get_random_stop(), self.get_random_stop(), self.get_random_hour(3, 9)))
+        for _ in range(sample_size):#hours 10:00-14:59
+            self.test_cases.append((self.get_random_stop(), self.get_random_stop(), self.get_random_hour(10, 14)))
+        for _ in range(sample_size):#hours 15:00-19:59
+            self.test_cases.append((self.get_random_stop(), self.get_random_stop(), self.get_random_hour(15, 19)))
+        for _ in range(sample_size):#hours >=20:00
+            self.test_cases.append((self.get_random_stop(), self.get_random_stop(), self.get_random_hour(20, 29)))
+            
+        # for test_case in self.test_cases:
+        #     print(test_case)
 
-    #MEASURE FUNCTION
-    def measure_func_run_time_1000_times(self, func, name):
-        current_time = time.time()
-        for _ in range(1000):
-            func()
-        print(f'{name}: {"{:.2f}".format(time.time() - current_time)}s')
 
-    #MEASURE DIJKSTRA
-    def measure_simple_dijkstra(self):
-        self.measure_func_run_time_1000_times(self.run_simple_dijkstra, 'simple dijkstra')
+    def get_random_stop(self):
+        return self.stops[random.randint(0, self.nodes_len - 1)]
+    
 
-    def measure_medium_dijkstra(self):
-        self.measure_func_run_time_1000_times(self.run_medium_dijkstra, 'medium dijkstra')
-
-    def measure_long_dijkstra(self):
-        self.measure_func_run_time_1000_times(self.run_long_dijkstra, 'long dijkstra')
-
-    #MEASURE ASTAR
-    def measure_simple_astar(self):
-        self.measure_func_run_time_1000_times(self.run_simple_astar, 'simple astar')
-
-    def measure_medium_astar(self):
-        self.measure_func_run_time_1000_times(self.run_medium_astar, 'medium astar')
-
-    def measure_long_astar(self):
-        self.measure_func_run_time_1000_times(self.run_long_astar, 'long astar')
-
-    #RUN DIJKSTRA
-    def run_simple_dijkstra(self, print_result = False):
-        dijkstra = Dijkstra(*self.simple_path, print_result)
-        dijkstra.start_algorithm()
-
-    def run_medium_dijkstra(self, print_result = False):
-        dijkstra = Dijkstra(*self.medium_path, print_result)
-        dijkstra.start_algorithm()
-
-    def run_long_dijkstra(self, print_result = False):
-        dijkstra = Dijkstra(*self.long_path, print_result)
-        dijkstra.start_algorithm()
+    def get_random_hour(self, hourFrom, hourTo):
+        return f'{random.randint(hourFrom,hourTo):02d}:{random.randint(0,59):02d}'
 
     #RUN ASTAR
-    def run_simple_astar(self, print_result = False):
-        astar = Astar(*self.simple_path, print_result)
-        astar.start_algorithm()
+    def run_dijkstra_random_tests(self):
+        return#TODO change Dijkstra
+        astar = Dijkstra(self.graph)
+        for test_case in self.test_cases:
+            current_time = time.time()
+            n = 1
+            result = None
+            for _ in range(n):
+                result = astar.start_algorithm(*test_case, False)
+            print(f'result {"   " if result else "not"} successful - {n} times - {test_case}: {"{:.2f}".format(time.time() - current_time)}s')
+            break
 
-    def run_medium_astar(self, print_result = False):
-        astar = Astar(*self.medium_path, print_result)
-        astar.start_algorithm()
+    #RUN ASTAR
+    def run_astar_random_tests(self):
+        astar = Astar(self.graph)
+        for test_case in self.test_cases:
+            current_time = time.time()
+            n = 1
+            result = None
+            for _ in range(n):
+                result = astar.start_algorithm(*test_case, False)#- cost: {result.cost if result else "  "} 
+            print(f'result {"   " if result else "not"} successful - {n} times - {test_case}: {"{:.2f}".format(time.time() - current_time)}s')
 
-    def run_long_astar(self, print_result = False):
-        astar = Astar(*self.long_path, print_result)
-        astar.start_algorithm()
 
-if __name__=='__main__':#todo obsluzyc przypadek gdy przystanek nie istnieje/sciezka nie istnieje
+if __name__=='__main__':
     test = Test(FILE_PATH) 
-    # test.measure_simple_dijkstra()
-    # test.measure_simple_astar()
-    test.run_long_astar(print_result=True)
+    test.run_astar_random_tests()
+    # test.run_dijkstra_random_tests()

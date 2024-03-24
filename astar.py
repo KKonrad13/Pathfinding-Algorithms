@@ -2,13 +2,14 @@ from typing import Dict, List
 from datastructures import Graph, Node, Edge
 from datetime import datetime as dt, timedelta as td
 class Astar:
-    def __init__(self, graph: Graph, first_stop: str, last_stop: str, start_time: str, print_result: bool = True) -> None:
-        if first_stop not in graph.nodes.keys() or last_stop not in graph.nodes.keys():
-            return 
-        graph.nodes[first_stop].cost = 0
+    def __init__(self, graph: Graph) -> None:
         self.original_graph: Graph = graph
-        self.nodes_left: Dict[str, Node] = graph.nodes.copy()
-        self.nodes_processed: Dict[str, Node] = {}
+        self.reset_graph()
+
+
+    def configure_variables(self, first_stop: str, last_stop: str, start_time: str, print_result: bool):
+        if first_stop not in self.original_graph.nodes.keys() or last_stop not in self.original_graph.nodes.keys():
+            return False 
         self.first_stop_name: str = first_stop
         self.last_stop_name: str = last_stop
         self.last_stop: Node = self.nodes_left[last_stop]
@@ -18,10 +19,26 @@ class Astar:
             start_dt += td(hours=24)
         self.start_time: dt = start_dt
         self.is_print_result: bool = print_result
-    
-    def start_algorithm(self):
+        return True
+
+
+    def reset_graph(self):
+        self.nodes_left: Dict[str, Node] = self.original_graph.nodes.copy()
+        for name in self.nodes_left:
+            self.nodes_left[name].cost = float('inf')
+            self.nodes_left[name].edge = None
+            self.nodes_left[name].heuristic_cost = 0
+        self.nodes_processed: Dict[str, Node] = {}
+
+
+    def start_algorithm(self, first_stop: str, last_stop: str, start_time: str, print_result: bool = True) -> Node:
+        self.reset_graph()
+        if not self.configure_variables(first_stop, last_stop, start_time, print_result):
+            return None
+
         current_node: Node
         current_node = self.nodes_left.pop(self.first_stop_name)
+        current_node.cost = 0
         while current_node is not None and current_node.name != self.last_stop_name:
             self.nodes_processed[current_node.name] = current_node
             if current_node.edge:
@@ -32,21 +49,22 @@ class Astar:
             for edge in node_edges:
                 #aktualizuj koszt -> aktualny koszt + czas potrzebny na przejazd + ile do odjazdu
                 #i dodaj do kolejki 
-                # self.calculate_costs_TIME_CONDITION(current_node, edge, current_time)
-                self.calculate_costs_BUS_CHANGE_CONDITION(current_node, edge)
+                self.calculate_costs_TIME_CONDITION(current_node, edge, current_time)
+                # self.calculate_costs_BUS_CHANGE_CONDITION(current_node, edge)
             lowest_cost_stop: str = self.get_lowest_cost_stop_name()
             
             if lowest_cost_stop != '' and self.nodes_left.keys() != []:
                 current_node = self.nodes_left.pop(lowest_cost_stop)
             else:
                 current_node = None
-        if not current_node:
+        if not current_node and self.is_print_result:
             time_diff: td = self.start_time - dt(1900, 1, 1, 0, 0, 0)
             hours = time_diff.total_seconds() // 3600
             minutes = (time_diff.total_seconds() % 3600) // 60
             print(f'Nie znaleziono ścieżki dla połacznia {self.first_stop_name} -> {self.last_stop_name} rozpoczynającego się o godzinie {int(hours):02d}:{int(minutes):02d}')
         elif self.is_print_result:
             self.print_result(current_node)
+        return current_node
     
     def calculate_costs_TIME_CONDITION(self, current_node: Node, edge: Edge, current_time: dt):
         current_time_cost = current_node.cost + edge.calculate_edge_cost(current_time)
