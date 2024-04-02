@@ -63,6 +63,9 @@ class Edge:
 
 class Graph:
     def __init__(self, file_path) -> None:
+        self.nodes: Dict[str, Node] = {}
+        self.nodes_with_edges: Dict[str, List[Edge]] = {}
+        self.edges: List[Edge] = []
         self.read_graph_from_csv(file_path)
     
     def read_graph_from_csv(self, file_path):
@@ -77,9 +80,6 @@ class Graph:
         index_end_stop_lon = 10
         with open(file_path, encoding="UTF-8") as file:
             reader = csv.reader(file, delimiter=',')
-            self.nodes: Dict[str, Node] = {}
-            self.nodes_with_edges: Dict[str, List[Edge]] = {}
-            self.edges: List[Edge] = []
             next(reader)
             for line in reader:
                 start_stop_name = line[index_start_stop]
